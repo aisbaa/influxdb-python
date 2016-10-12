@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import unittest
 
 from influxdb import line_protocol
+from influxdb.line_protocol import _convert_timestamp
 
 
 class TestLineProtocol(unittest.TestCase):
@@ -88,3 +89,14 @@ class TestLineProtocol(unittest.TestCase):
             line_protocol.quote_literal(r"""\foo ' bar " Örf"""),
             r"""'\\foo \' bar " Örf'"""
         )
+
+
+class Test_convert_timestamp(unittest.TestCase):
+
+    def test_if_raises_value_error_when_not_supported(self):
+        with self.assertRaises(ValueError):
+            _convert_timestamp(object())
+
+    def test_if_returs_unmodified_integral_values(self):
+        self.assertEqual(_convert_timestamp(5), 5)
+        self.assertEqual(_convert_timestamp(-2), -2)
