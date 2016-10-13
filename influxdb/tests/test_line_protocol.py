@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import unittest
 
 from influxdb import line_protocol
-from influxdb.line_protocol import _convert_timestamp
+from influxdb.line_protocol import _convert_timestamp, make_line
 
 
 class TestLineProtocol(unittest.TestCase):
@@ -90,8 +90,38 @@ class TestLineProtocol(unittest.TestCase):
             r"""'\\foo \' bar " Örf'"""
         )
 
+    def test_if_space_is_escaped_in_tag_key_tag_value_and_field_key(self):
+        line = make_line('escaping', tags={'a b': '1 2'}, fields={'c d': 5})
+        self.assertEqual(line, 'escaping,a\ b=1\ 2 c\ d=5i')
 
-class Test_convert_timestamp(unittest.TestCase):
+    def test_if_comma_escaped_in_tag_key_tag_value_and_field_key(self):
+        line = make_line('escaping', tags={'a,b': '1,2'}, fields={'c,d': 5})
+        self.assertEqual(line, 'escaping,a\,b=1\,2 c\,d=5i')
+
+    def test_if_equal_escaped_in_tag_key_tag_value_and_field_key(self):
+        line = make_line('escaping', tags={'a=b': '1=2'}, fields={'c=d': 5})
+        self.assertEqual(line, 'escaping,a\=b=1\=2 c\=d=5i')
+
+    def test_if_backslash_not_be_escaped(self):
+        line = make_line(
+            'backslash_escaping',
+            tags={
+                'C:\\Program Files': 12
+            },
+            fields={
+                'C:\\Documents and Files': 5
+            })
+        print(line)
+        self.assertEqual(
+            line,
+            (
+                r'backslash_escaping,C:\Program\ Files=12'
+                r' C:\Documents\ and\ Files=5i'
+            )
+        )
+
+
+class TestConvertTimestamp(unittest.TestCase):
 
     def test_if_raises_value_error_when_not_supported(self):
         with self.assertRaises(ValueError):

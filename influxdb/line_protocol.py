@@ -43,8 +43,6 @@ def _convert_timestamp(timestamp, precision=None):
 def _escape_tag(tag):
     tag = _get_unicode(tag, force=True)
     return tag.replace(
-        "\\", "\\\\"
-    ).replace(
         " ", "\\ "
     ).replace(
         ",", "\\,"
